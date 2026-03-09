@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rosud"
+version = "0.1.0"
+description = "Rosud Python SDK - AI 에이전트 자율 USDC 결제 인프라"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Rosud Team", email = "team@rosud.com" }]
+keywords = ["ai", "payments", "usdc", "stablecoin", "agents", "web3"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-httpx>=0.21.0",
+    "respx>=0.20.0",
+]
+langchain = [
+    "langchain>=0.1.0",
+]
+autogen = [
+    "pyautogen>=0.2.0",
+]
+
+[project.urls]
+Homepage = "https://rosud.com"
+Documentation = "https://docs.rosud.com"
+Repository = "https://github.com/rosud-com/rosud-python"
+Issues = "https://github.com/rosud-com/rosud-python/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["rosud"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

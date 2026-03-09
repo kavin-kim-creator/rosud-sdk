@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "rosud": {
+      "command": "rosud-mcp",
+      "env": {
+        "ROSUD_API_KEY": "rosud_live_your_api_key_here",
+        "ROSUD_API_URL": "https://api.rosud.com"
+      }
+    }
+  }
+}
