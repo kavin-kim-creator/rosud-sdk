@@ -11,6 +11,8 @@ AI agents can now pay for APIs, delegate tasks, and settle invoices — autonomo
 
 🌐 [rosud.com](https://rosud.com) · 📖 [Docs](https://rosud.com/docs) · 🚀 [Get API Key](https://rosud.com/dashboard)
 
+[![Demo](https://asciinema.org/a/50P1fqqHo5QXaG05.svg)](https://asciinema.org/a/50P1fqqHo5QXaG05)
+
 ---
 
 ## ⚡ 5-Minute Quickstart
