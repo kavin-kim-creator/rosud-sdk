@@ -1,0 +1,49 @@
+name: Publish TypeScript SDK to npm
+
+on:
+  push:
+    tags:
+      - 'sdk-ts/v*'
+
+permissions:
+  contents: read
+  id-token: write  # for npm provenance
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk-ts
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify build output
+        run: |
+          ls dist/
+          node -e "const r = require('./dist/index.js'); console.log('CJS ok:', typeof r.default)"
+
+      - name: Publish to npm
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Report success
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "✅ Published rosud@${VERSION} to npm"
