@@ -178,6 +178,57 @@ app.post('/webhooks/rosud', express.raw({ type: '*/*' }), (req, res) => {
 })
 ```
 
+## x402 Facilitator
+
+Rosud implements the [x402 protocol](https://github.com/coinbase/x402) as a Facilitator on Base.
+
+### Verify Payment
+
+```typescript
+const response = await fetch("https://api.rosud.com/v1/x402/verify", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    x402Version: 2,
+    accepted: {
+      scheme: "exact",
+      network: "eip155:8453",
+      amount: "1000000",
+      asset: "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      payTo: "0xYOUR_WALLET",
+      maxTimeoutSeconds: 60,
+      extra: {}
+    },
+    payload: {
+      signature: "0x...",
+      authorization: {
+        from: "0xPAYER",
+        to: "0xYOUR_WALLET",
+        value: "1000000",
+        validAfter: "0",
+        validBefore: "9999999999",
+        nonce: "0x" + "0".repeat(64)
+      }
+    }
+  })
+})
+const { isValid, invalidReason } = await response.json()
+```
+
+### Settle Payment
+
+```typescript
+const response = await fetch("https://api.rosud.com/v1/x402/settle", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer rsd_YOUR_API_KEY",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({ ... }) // same structure as verify
+})
+const { success, txHash, network } = await response.json()
+```
+
 ## Error Handling
 
 ```typescript

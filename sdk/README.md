@@ -68,3 +68,53 @@ except RosudAPIError as e:
 - [API Docs](https://rosud.com/docs)
 - [TypeScript SDK](https://www.npmjs.com/package/rosud)
 - [MCP Server](https://pypi.org/project/rosud-mcp)
+
+## x402 Facilitator
+
+Rosud implements the [x402 protocol](https://github.com/coinbase/x402) as a Facilitator on Base.
+
+### Verify Payment
+
+```python
+import requests
+
+response = requests.post(
+    "https://api.rosud.com/v1/x402/verify",
+    json={
+        "x402Version": 2,
+        "accepted": {
+            "scheme": "exact",
+            "network": "eip155:8453",
+            "amount": "1000000",
+            "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+            "payTo": "0xYOUR_WALLET",
+            "maxTimeoutSeconds": 60,
+            "extra": {}
+        },
+        "payload": {
+            "signature": "0x...",
+            "authorization": {
+                "from": "0xPAYER",
+                "to": "0xYOUR_WALLET",
+                "value": "1000000",
+                "validAfter": "0",
+                "validBefore": "9999999999",
+                "nonce": "0x" + "0" * 64
+            }
+        }
+    }
+)
+result = response.json()
+# {"isValid": true} or {"isValid": false, "invalidReason": "signature_invalid"}
+```
+
+### Settle Payment
+
+```python
+response = requests.post(
+    "https://api.rosud.com/v1/x402/settle",
+    headers={"Authorization": "Bearer rsd_YOUR_API_KEY"},
+    json={ ... }  # same structure as verify
+)
+# {"success": true, "txHash": "0xabc...", "network": "eip155:8453"}
+```
