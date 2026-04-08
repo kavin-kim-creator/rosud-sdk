@@ -1,4 +1,4 @@
-"""클라이언트 초기화 및 기본 동작 테스트"""
+"""Client initialization and basic behavior tests"""
 import os
 from unittest.mock import patch
 
@@ -10,7 +10,7 @@ from rosud.exceptions import AuthenticationError, RosudError
 
 
 class TestRosudClientInit:
-    """Rosud 클라이언트 초기화 테스트"""
+    """Rosud client initialization tests"""
 
     def test_init_with_api_key(self):
         client = Rosud(api_key="rosud_live_test_key")
@@ -23,10 +23,10 @@ class TestRosudClientInit:
 
     def test_init_without_api_key_raises(self):
         with patch.dict(os.environ, {}, clear=True):
-            # ROSUD_API_KEY 환경변수도 없는 상태
+            # ROSUD_API_KEY environment variable is also absent
             env = {k: v for k, v in os.environ.items() if k != "ROSUD_API_KEY"}
             with patch.dict(os.environ, env, clear=True):
-                with pytest.raises(ValueError, match="API 키가 필요합니다"):
+                with pytest.raises(ValueError, match="API key is required"):
                     Rosud()
 
     def test_init_with_custom_base_url(self):
@@ -55,7 +55,7 @@ class TestRosudClientInit:
 
 
 class TestAsyncRosudClientInit:
-    """AsyncRosud 클라이언트 초기화 테스트"""
+    """AsyncRosud client initialization tests"""
 
     def test_init_with_api_key(self):
         client = AsyncRosud(api_key="rosud_live_test_key")
@@ -75,22 +75,22 @@ class TestAsyncRosudClientInit:
 
 
 class TestExceptions:
-    """예외 클래스 테스트"""
+    """Exception class tests"""
 
     def test_rosud_error_attributes(self):
         err = RosudError(
-            "테스트 오류",
+            "Test error",
             status_code=400,
             error_code="test_error",
-            response_body={"error": "test_error", "message": "테스트 오류"},
+            response_body={"error": "test_error", "message": "Test error"},
         )
-        assert err.message == "테스트 오류"
+        assert err.message == "Test error"
         assert err.status_code == 400
         assert err.error_code == "test_error"
-        assert str(err) == "테스트 오류"
+        assert str(err) == "Test error"
 
     def test_authentication_error_is_rosud_error(self):
-        err = AuthenticationError("인증 실패", status_code=401)
+        err = AuthenticationError("Authentication failed", status_code=401)
         assert isinstance(err, RosudError)
         assert err.status_code == 401
 
@@ -98,7 +98,7 @@ class TestExceptions:
         from rosud.exceptions import ValidationError
 
         err = ValidationError(
-            "유효성 검사 실패",
+            "Validation failed",
             field_errors=[
                 {"loc": ["body", "amount"], "msg": "must be greater than 0"},
             ],
@@ -109,12 +109,12 @@ class TestExceptions:
     def test_rate_limit_error_retry_after(self):
         from rosud.exceptions import RateLimitError
 
-        err = RateLimitError("너무 많은 요청", retry_after=60, status_code=429)
+        err = RateLimitError("Too many requests", retry_after=60, status_code=429)
         assert err.retry_after == 60
 
 
 class TestModels:
-    """모델 테스트"""
+    """Model tests"""
 
     def test_payment_model(self):
         from datetime import datetime
@@ -193,5 +193,5 @@ class TestModels:
             api_key="rosud_live_supersecretkey",
         )
         r = repr(agent)
-        # repr에서 full key가 노출되면 안 됨
+        # full key must not be exposed in repr
         assert "supersecretkey" not in r

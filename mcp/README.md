@@ -1,42 +1,42 @@
 # Rosud MCP Server
 
-Claude 에이전트가 USDC 스테이블코인으로 **자율 결제**를 실행할 수 있는 MCP(Model Context Protocol) 서버입니다.
+An MCP (Model Context Protocol) server that enables Claude agents to execute **autonomous payments** with USDC stablecoin.
 
-## 제공 도구
+## Available Tools
 
-| 도구 | 설명 |
-|------|------|
-| `create_payment` | USDC로 결제 생성 |
-| `get_balance` | 현재 USDC 잔액 조회 |
-| `list_payments` | 결제 내역 목록 조회 |
-| `get_payment` | 특정 결제 상태 조회 |
+| Tool | Description |
+|------|-------------|
+| `create_payment` | Create a payment in USDC |
+| `get_balance` | Query current USDC balance |
+| `list_payments` | List payment history |
+| `get_payment` | Query a specific payment's status |
 
-## 설치
+## Installation
 
 ```bash
-# 패키지 설치
+# Install package
 pip install -e "packages/mcp[dev]"
 
-# 또는 uv 사용
+# Or using uv
 uv pip install -e "packages/mcp"
 ```
 
-## 환경변수 설정
+## Environment Variables
 
 ```bash
-# 필수: Rosud API Key
+# Required: Rosud API Key
 export ROSUD_API_KEY=rosud_live_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
 
-# 선택: API URL (기본값: http://localhost:8000)
+# Optional: API URL (default: http://localhost:8000)
 export ROSUD_API_URL=https://api.rosud.io
 ```
 
-API Key는 Rosud 대시보드에서 발급받을 수 있습니다.
+You can obtain an API Key from the Rosud dashboard.
 
-## Claude Desktop에 추가하기
+## Adding to Claude Desktop
 
-`~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) 또는
-`%APPDATA%\Claude\claude_desktop_config.json` (Windows)에 아래 내용을 추가하세요.
+Add the following to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or
+`%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -52,7 +52,7 @@ API Key는 Rosud 대시보드에서 발급받을 수 있습니다.
 }
 ```
 
-`rosud-mcp` 커맨드가 PATH에 없는 경우 절대 경로를 사용하세요:
+If the `rosud-mcp` command is not in PATH, use the absolute path:
 
 ```json
 {
@@ -67,51 +67,51 @@ API Key는 Rosud 대시보드에서 발급받을 수 있습니다.
 }
 ```
 
-## 사용 예시
+## Usage Examples
 
-Claude Desktop에서 다음과 같이 요청할 수 있습니다:
+You can make requests like the following in Claude Desktop:
 
-### 잔액 확인
+### Check Balance
 ```
-현재 USDC 잔액이 얼마야?
-```
-
-### 결제 실행
-```
-0x742d35Cc6634C0532925a3b844Bc454e4438f44e 주소로 API 호출 비용 5달러를 결제해줘.
-메모는 'gpt4_api_call' 로 남겨줘.
+What is my current USDC balance?
 ```
 
-### 결제 내역 조회
+### Execute Payment
 ```
-최근 10건의 결제 내역을 보여줘.
-실패한 결제가 있으면 알려줘.
-```
-
-### 결제 상태 확인
-```
-결제 pay_01HXABCDEF 처리됐어?
+Pay the API call fee of $5 to address 0x742d35Cc6634C0532925a3b844Bc454e4438f44e.
+Leave memo as 'gpt4_api_call'.
 ```
 
-### 복합 워크플로우
+### View Payment History
 ```
-외부 데이터 API를 호출하기 전에:
-1. 잔액이 충분한지 확인해줘 (최소 10 USDC 필요)
-2. 잔액이 충분하면 merchant_data_api 에 9.99달러 결제해줘
-3. 결제 완료되면 결제 ID를 알려줘
+Show me the last 10 payment records.
+Let me know if there are any failed payments.
 ```
 
-## 직접 실행 (개발용)
+### Check Payment Status
+```
+Was payment pay_01HXABCDEF processed?
+```
+
+### Complex Workflow
+```
+Before calling the external data API:
+1. Check if the balance is sufficient (minimum 10 USDC required)
+2. If the balance is sufficient, pay 9.99 dollars to merchant_data_api
+3. Once payment is complete, tell me the payment ID
+```
+
+## Running Directly (Development)
 
 ```bash
-# stdio 모드로 직접 실행
+# Run directly in stdio mode
 ROSUD_API_KEY=rosud_live_xxx rosud-mcp
 
-# 또는 Python 모듈로 실행
+# Or run as Python module
 ROSUD_API_KEY=rosud_live_xxx python -m rosud_mcp.server
 ```
 
-## 테스트 실행
+## Running Tests
 
 ```bash
 cd packages/mcp
@@ -119,29 +119,29 @@ pip install -e ".[dev]"
 pytest tests/ -v
 ```
 
-## 아키텍처
+## Architecture
 
 ```
 Claude Desktop
      │ MCP Protocol (stdio)
      ▼
 rosud_mcp.server   ← MCP Server (app)
-     │ tool 호출
+     │ tool call
      ▼
-rosud_mcp.tools    ← 도구 정의 + 핸들러
-     │ HTTP 요청
+rosud_mcp.tools    ← Tool definitions + handlers
+     │ HTTP request
      ▼
 rosud_mcp.client   ← httpx AsyncClient
-     │ X-API-Key 인증
+     │ X-API-Key auth
      ▼
 Rosud Payment API  ← FastAPI (apps/api)
      │
      ▼
-Circle USDC API    ← Base L2 블록체인
+Circle USDC API    ← Base L2 blockchain
 ```
 
-## 보안 주의사항
+## Security Notes
 
-- API Key를 코드에 하드코딩하지 마세요. 항상 환경변수를 사용하세요.
-- 결제는 되돌릴 수 없습니다. 금액과 수신자 주소를 반드시 확인하세요.
-- `idempotency_key`를 사용하면 네트워크 오류 시 안전하게 재시도할 수 있습니다.
+- Do not hardcode the API Key in code. Always use environment variables.
+- Payments are irreversible. Always verify the amount and recipient address.
+- Using `idempotency_key` allows safe retries on network errors.

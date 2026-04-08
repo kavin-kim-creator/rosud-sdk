@@ -1,4 +1,4 @@
-"""Rosud SDK 리소스 모듈"""
+"""Rosud SDK resources module"""
 from .agents import AsyncAgentsResource, AgentsResource
 from .payments import AsyncPaymentsResource, PaymentsResource
 from .wallets import AsyncWalletsResource, WalletsResource

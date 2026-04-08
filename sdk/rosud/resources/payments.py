@@ -1,4 +1,4 @@
-"""결제 리소스"""
+"""Payment resource"""
 from __future__ import annotations
 
 from decimal import Decimal
@@ -28,7 +28,7 @@ def _build_payment_payload(
 
 
 class PaymentsResource:
-    """결제 API (동기)
+    """Payments API (synchronous)
 
     Examples:
         >>> payment = client.payments.create(amount=5.00, to="0xRecipient", memo="fee")
@@ -52,24 +52,24 @@ class PaymentsResource:
         memo: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Payment:
-        """USDC 결제를 생성합니다.
+        """Create a USDC payment.
 
         Args:
-            amount: 결제 금액 (USDC 기준, 예: 5.00)
-            to: 수신자 지갑 주소 (예: "0xRecipientAddress")
-            currency: 통화 (기본값: "USDC")
-            memo: 결제 메모 (선택)
-            idempotency_key: 중복 방지 키 (선택)
+            amount: Payment amount in USDC (e.g., 5.00)
+            to: Recipient wallet address (e.g., "0xRecipientAddress")
+            currency: Currency (default: "USDC")
+            memo: Payment memo (optional)
+            idempotency_key: Deduplication key (optional)
 
         Returns:
-            Payment: 생성된 결제 객체
+            Payment: The created payment object
 
         Raises:
-            ValidationError: amount <= 0이거나 to가 비어있는 경우
-            InsufficientFundsError: 잔액 부족
-            SpendingLimitExceededError: 지출 한도 초과
-            RecipientNotAllowedError: 허용되지 않은 수신자
-            AuthenticationError: API 키 오류
+            ValidationError: If amount <= 0 or to is empty
+            InsufficientFundsError: Insufficient balance
+            SpendingLimitExceededError: Spending limit exceeded
+            RecipientNotAllowedError: Recipient not allowed
+            AuthenticationError: API key error
         """
         payload = _build_payment_payload(amount, to, currency, memo, idempotency_key)
         data = self._http.post("/v1/payments", json=payload)
@@ -81,15 +81,15 @@ class PaymentsResource:
         offset: int = 0,
         status: Optional[str] = None,
     ) -> PaymentList:
-        """결제 목록을 조회합니다.
+        """List payments.
 
         Args:
-            limit: 최대 반환 건수 (기본값: 20)
-            offset: 건너뛸 건수 (기본값: 0)
-            status: 상태 필터 ("pending", "confirmed", "failed")
+            limit: Maximum number of results to return (default: 20)
+            offset: Number of results to skip (default: 0)
+            status: Status filter ("pending", "confirmed", "failed")
 
         Returns:
-            PaymentList: 결제 목록 (이터러블)
+            PaymentList: List of payments (iterable)
         """
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if status is not None:
@@ -98,23 +98,23 @@ class PaymentsResource:
         return PaymentList.model_validate(data)
 
     def get(self, payment_id: str) -> Payment:
-        """특정 결제를 조회합니다.
+        """Retrieve a specific payment.
 
         Args:
-            payment_id: 결제 UUID
+            payment_id: Payment UUID
 
         Returns:
-            Payment: 결제 객체
+            Payment: The payment object
 
         Raises:
-            NotFoundError: 결제를 찾을 수 없는 경우
+            NotFoundError: If the payment is not found
         """
         data = self._http.get(f"/v1/payments/{payment_id}")
         return Payment.model_validate(data)
 
 
 class AsyncPaymentsResource:
-    """결제 API (비동기)
+    """Payments API (asynchronous)
 
     Examples:
         >>> payment = await client.payments.create(amount=5.00, to="0xRecipient")
@@ -133,17 +133,17 @@ class AsyncPaymentsResource:
         memo: Optional[str] = None,
         idempotency_key: Optional[str] = None,
     ) -> Payment:
-        """USDC 결제를 생성합니다 (비동기).
+        """Create a USDC payment (async).
 
         Args:
-            amount: 결제 금액 (USDC)
-            to: 수신자 지갑 주소
-            currency: 통화 (기본값: "USDC")
-            memo: 결제 메모 (선택)
-            idempotency_key: 중복 방지 키 (선택)
+            amount: Payment amount in USDC
+            to: Recipient wallet address
+            currency: Currency (default: "USDC")
+            memo: Payment memo (optional)
+            idempotency_key: Deduplication key (optional)
 
         Returns:
-            Payment: 생성된 결제 객체
+            Payment: The created payment object
         """
         payload = _build_payment_payload(amount, to, currency, memo, idempotency_key)
         data = await self._http.post("/v1/payments", json=payload)
@@ -155,7 +155,7 @@ class AsyncPaymentsResource:
         offset: int = 0,
         status: Optional[str] = None,
     ) -> PaymentList:
-        """결제 목록을 조회합니다 (비동기)."""
+        """List payments (async)."""
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if status is not None:
             params["status"] = status
@@ -163,6 +163,6 @@ class AsyncPaymentsResource:
         return PaymentList.model_validate(data)
 
     async def get(self, payment_id: str) -> Payment:
-        """특정 결제를 조회합니다 (비동기)."""
+        """Retrieve a specific payment (async)."""
         data = await self._http.get(f"/v1/payments/{payment_id}")
         return Payment.model_validate(data)

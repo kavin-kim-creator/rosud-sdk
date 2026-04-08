@@ -1,4 +1,4 @@
-"""에이전트 리소스"""
+"""Agent resource"""
 from __future__ import annotations
 
 from decimal import Decimal
@@ -25,7 +25,7 @@ def _build_agent_payload(
 
 
 class AgentsResource:
-    """에이전트 API (동기)
+    """Agents API (synchronous)
 
     Examples:
         >>> agent = client.agents.create(
@@ -33,7 +33,7 @@ class AgentsResource:
         ...     spending_limit_daily=100.00,
         ...     spending_limit_per_tx=10.00,
         ... )
-        >>> print(agent.api_key)  # 최초 1회만 반환
+        >>> print(agent.api_key)  # returned only once
 
         >>> agents = client.agents.list()
         >>> for a in agents:
@@ -50,20 +50,20 @@ class AgentsResource:
         spending_limit_per_tx: Optional[float | Decimal] = None,
         allowed_recipients: Optional[list[str]] = None,
     ) -> AgentCreated:
-        """새 에이전트를 생성합니다.
+        """Create a new agent.
 
         Args:
-            name: 에이전트 이름
-            spending_limit_daily: 일별 지출 한도 (USDC, 선택)
-            spending_limit_per_tx: 건별 지출 한도 (USDC, 선택)
-            allowed_recipients: 허용된 수신자 주소 목록 (None = 모든 주소 허용)
+            name: Agent name
+            spending_limit_daily: Daily spending limit in USDC (optional)
+            spending_limit_per_tx: Per-transaction spending limit in USDC (optional)
+            allowed_recipients: List of allowed recipient addresses (None = all addresses allowed)
 
         Returns:
-            AgentCreated: 생성된 에이전트 (api_key 포함 - 최초 1회만 반환)
+            AgentCreated: The created agent (includes api_key — returned only once)
 
         Raises:
-            ValidationError: 필수 파라미터 누락 또는 유효하지 않은 값
-            AuthenticationError: API 키 오류
+            ValidationError: Missing required parameter or invalid value
+            AuthenticationError: API key error
         """
         payload = _build_agent_payload(name, spending_limit_daily, spending_limit_per_tx, allowed_recipients)
         data = self._http.post("/v1/agents", json=payload)
@@ -75,15 +75,15 @@ class AgentsResource:
         offset: int = 0,
         is_active: Optional[bool] = None,
     ) -> AgentList:
-        """에이전트 목록을 조회합니다.
+        """List agents.
 
         Args:
-            limit: 최대 반환 건수 (기본값: 20)
-            offset: 건너뛸 건수 (기본값: 0)
-            is_active: 활성 상태 필터 (선택)
+            limit: Maximum number of results to return (default: 20)
+            offset: Number of results to skip (default: 0)
+            is_active: Active status filter (optional)
 
         Returns:
-            AgentList: 에이전트 목록 (이터러블)
+            AgentList: List of agents (iterable)
         """
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if is_active is not None:
@@ -92,23 +92,23 @@ class AgentsResource:
         return AgentList.model_validate(data)
 
     def get(self, agent_id: str) -> Agent:
-        """특정 에이전트를 조회합니다.
+        """Retrieve a specific agent.
 
         Args:
-            agent_id: 에이전트 UUID
+            agent_id: Agent UUID
 
         Returns:
-            Agent: 에이전트 객체
+            Agent: The agent object
 
         Raises:
-            NotFoundError: 에이전트를 찾을 수 없는 경우
+            NotFoundError: If the agent is not found
         """
         data = self._http.get(f"/v1/agents/{agent_id}")
         return Agent.model_validate(data)
 
 
 class AsyncAgentsResource:
-    """에이전트 API (비동기)"""
+    """Agents API (asynchronous)"""
 
     def __init__(self, http: AsyncHTTPClient) -> None:
         self._http = http
@@ -120,7 +120,7 @@ class AsyncAgentsResource:
         spending_limit_per_tx: Optional[float | Decimal] = None,
         allowed_recipients: Optional[list[str]] = None,
     ) -> AgentCreated:
-        """새 에이전트를 생성합니다 (비동기)."""
+        """Create a new agent (async)."""
         payload = _build_agent_payload(name, spending_limit_daily, spending_limit_per_tx, allowed_recipients)
         data = await self._http.post("/v1/agents", json=payload)
         return AgentCreated.model_validate(data)
@@ -131,7 +131,7 @@ class AsyncAgentsResource:
         offset: int = 0,
         is_active: Optional[bool] = None,
     ) -> AgentList:
-        """에이전트 목록을 조회합니다 (비동기)."""
+        """List agents (async)."""
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         if is_active is not None:
             params["is_active"] = is_active
@@ -139,6 +139,6 @@ class AsyncAgentsResource:
         return AgentList.model_validate(data)
 
     async def get(self, agent_id: str) -> Agent:
-        """특정 에이전트를 조회합니다 (비동기)."""
+        """Retrieve a specific agent (async)."""
         data = await self._http.get(f"/v1/agents/{agent_id}")
         return Agent.model_validate(data)

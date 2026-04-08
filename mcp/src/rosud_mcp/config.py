@@ -1,4 +1,4 @@
-"""Rosud MCP Server 설정"""
+"""Rosud MCP Server configuration"""
 from pydantic_settings import BaseSettings
 
 

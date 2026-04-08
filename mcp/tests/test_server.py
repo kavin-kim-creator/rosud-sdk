@@ -1,4 +1,4 @@
-"""Rosud MCP Server 테스트"""
+"""Rosud MCP Server tests"""
 import json
 import os
 from unittest.mock import AsyncMock, patch
@@ -18,7 +18,7 @@ from rosud_mcp.tools import (
 )
 
 
-# ─── 픽스처 ──────────────────────────────────────────────────────────────────
+# --- Fixtures ────────────────────────────────────────────────────────────────
 
 @pytest.fixture
 def mock_payment_response():
@@ -60,7 +60,7 @@ def mock_payments_list_response():
     }
 
 
-# ─── create_payment 테스트 ────────────────────────────────────────────────────
+# --- create_payment tests ────────────────────────────────────────────────────
 
 class TestCreatePayment:
     async def test_create_payment_success(self, mock_payment_response):
@@ -99,7 +99,7 @@ class TestCreatePayment:
 
     async def test_create_payment_api_error(self):
         with patch.object(RosudClient, "create_payment", new_callable=AsyncMock) as mock:
-            mock.side_effect = RosudAPIError(402, "insufficient_balance", "잔액 부족")
+            mock.side_effect = RosudAPIError(402, "insufficient_balance", "Insufficient balance")
 
             result = await handle_create_payment(
                 {"amount": 999999.00, "to": "0xRecipientAddress"}
@@ -108,18 +108,18 @@ class TestCreatePayment:
         assert len(result) == 1
         assert "402" in result[0].text
         assert "insufficient_balance" in result[0].text
-        assert "잔액 부족" in result[0].text
+        assert "Insufficient balance" in result[0].text
 
     async def test_create_payment_missing_api_key(self):
         with patch("rosud_mcp.tools.RosudClient") as MockClient:
-            MockClient.side_effect = ValueError("ROSUD_API_KEY 환경변수가 설정되지 않았습니다")
+            MockClient.side_effect = ValueError("ROSUD_API_KEY environment variable is not set")
 
             result = await handle_create_payment({"amount": 5.00, "to": "0xRecipient"})
 
-        assert "설정 오류" in result[0].text
+        assert "Configuration error" in result[0].text
 
 
-# ─── get_balance 테스트 ───────────────────────────────────────────────────────
+# --- get_balance tests ───────────────────────────────────────────────────────
 
 class TestGetBalance:
     async def test_get_balance_success(self, mock_balance_response):
@@ -135,7 +135,7 @@ class TestGetBalance:
 
     async def test_get_balance_api_error(self):
         with patch.object(RosudClient, "get_balance", new_callable=AsyncMock) as mock:
-            mock.side_effect = RosudAPIError(401, "unauthorized", "유효하지 않은 API 키")
+            mock.side_effect = RosudAPIError(401, "unauthorized", "Invalid API key")
 
             result = await handle_get_balance({})
 
@@ -143,7 +143,7 @@ class TestGetBalance:
         assert "unauthorized" in result[0].text
 
 
-# ─── list_payments 테스트 ─────────────────────────────────────────────────────
+# --- list_payments tests ─────────────────────────────────────────────────────
 
 class TestListPayments:
     async def test_list_payments_success(self, mock_payments_list_response):
@@ -174,7 +174,7 @@ class TestListPayments:
         mock.assert_called_once_with(limit=10, status=None)
 
 
-# ─── get_payment 테스트 ───────────────────────────────────────────────────────
+# --- get_payment tests ───────────────────────────────────────────────────────
 
 class TestGetPayment:
     async def test_get_payment_success(self, mock_payment_response):
@@ -189,7 +189,7 @@ class TestGetPayment:
 
     async def test_get_payment_not_found(self):
         with patch.object(RosudClient, "get_payment", new_callable=AsyncMock) as mock:
-            mock.side_effect = RosudAPIError(404, "payment_not_found", "결제를 찾을 수 없습니다")
+            mock.side_effect = RosudAPIError(404, "payment_not_found", "Payment not found")
 
             result = await handle_get_payment({"payment_id": "pay_nonexistent"})
 
@@ -197,7 +197,7 @@ class TestGetPayment:
         assert "payment_not_found" in result[0].text
 
 
-# ─── 도구 목록 테스트 ─────────────────────────────────────────────────────────
+# --- Tool definitions tests ──────────────────────────────────────────────────
 
 class TestToolDefinitions:
     def test_all_tools_defined(self):
@@ -228,5 +228,5 @@ class TestToolDefinitions:
         from rosud_mcp.tools import ALL_TOOLS
 
         for tool in ALL_TOOLS:
-            assert tool.description, f"{tool.name} 도구에 description이 없습니다"
-            assert len(tool.description) > 20, f"{tool.name} description이 너무 짧습니다"
+            assert tool.description, f"Tool {tool.name} has no description"
+            assert len(tool.description) > 20, f"Tool {tool.name} description is too short"

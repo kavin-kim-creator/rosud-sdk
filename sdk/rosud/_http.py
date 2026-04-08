@@ -1,4 +1,4 @@
-"""Rosud SDK HTTP 클라이언트 (httpx 기반, retry 로직 포함)"""
+"""Rosud SDK HTTP client (httpx-based, with retry logic)"""
 from __future__ import annotations
 
 import time
@@ -39,7 +39,7 @@ def _backoff_wait(attempt: int) -> float:
 
 
 class SyncHTTPClient:
-    """동기 HTTP 클라이언트"""
+    """Synchronous HTTP client"""
 
     def __init__(
         self,
@@ -90,26 +90,26 @@ class SyncHTTPClient:
                 )
             except httpx.TimeoutException as e:
                 raise TimeoutError(
-                    f"요청 타임아웃 ({self._timeout}초): {method} {path}"
+                    f"Request timed out ({self._timeout}s): {method} {path}"
                 ) from e
             except httpx.ConnectError as e:
                 raise ConnectionError(
-                    f"서버에 연결할 수 없습니다: {self._base_url}"
+                    f"Cannot connect to server: {self._base_url}"
                 ) from e
             except httpx.RequestError as e:
-                raise RosudError(f"요청 오류: {e}") from e
+                raise RosudError(f"Request error: {e}") from e
 
-            # 성공 응답
+            # Successful response
             if response.status_code < 400:
                 return response.json()
 
-            # 재시도 가능한 오류
+            # Retryable error
             if _should_retry(response.status_code, attempt, self._max_retries):
                 wait = _backoff_wait(attempt)
                 time.sleep(wait)
                 continue
 
-            # 오류 처리
+            # Error handling
             try:
                 body = response.json()
             except Exception:
@@ -117,8 +117,8 @@ class SyncHTTPClient:
 
             _raise_for_status(response.status_code, body)
 
-        # 모든 재시도 실패
-        raise ServerError(f"최대 재시도 횟수({self._max_retries})를 초과했습니다")
+        # All retries exhausted
+        raise ServerError(f"Maximum retries ({self._max_retries}) exceeded")
 
     def get(self, path: str, *, params: dict[str, Any] | None = None) -> dict[str, Any]:
         return self.request("GET", path, params=params)
@@ -131,7 +131,7 @@ class SyncHTTPClient:
 
 
 class AsyncHTTPClient:
-    """비동기 HTTP 클라이언트"""
+    """Asynchronous HTTP client"""
 
     def __init__(
         self,
@@ -183,26 +183,26 @@ class AsyncHTTPClient:
                 )
             except httpx.TimeoutException as e:
                 raise TimeoutError(
-                    f"요청 타임아웃 ({self._timeout}초): {method} {path}"
+                    f"Request timed out ({self._timeout}s): {method} {path}"
                 ) from e
             except httpx.ConnectError as e:
                 raise ConnectionError(
-                    f"서버에 연결할 수 없습니다: {self._base_url}"
+                    f"Cannot connect to server: {self._base_url}"
                 ) from e
             except httpx.RequestError as e:
-                raise RosudError(f"요청 오류: {e}") from e
+                raise RosudError(f"Request error: {e}") from e
 
-            # 성공 응답
+            # Successful response
             if response.status_code < 400:
                 return response.json()
 
-            # 재시도 가능한 오류
+            # Retryable error
             if _should_retry(response.status_code, attempt, self._max_retries):
                 wait = _backoff_wait(attempt)
                 await asyncio.sleep(wait)
                 continue
 
-            # 오류 처리
+            # Error handling
             try:
                 body = response.json()
             except Exception:
@@ -210,7 +210,7 @@ class AsyncHTTPClient:
 
             _raise_for_status(response.status_code, body)
 
-        raise ServerError(f"최대 재시도 횟수({self._max_retries})를 초과했습니다")
+        raise ServerError(f"Maximum retries ({self._max_retries}) exceeded")
 
     async def get(self, path: str, *, params: dict[str, Any] | None = None) -> dict[str, Any]:
         return await self.request("GET", path, params=params)

@@ -1,10 +1,10 @@
 """
-AutoGen 통합 예시 - Rosud Python SDK
+AutoGen integration example - Rosud Python SDK
 
-Microsoft AutoGen 프레임워크와 Rosud를 통합하여
-AI 에이전트가 자율적으로 USDC 결제를 처리하는 예시.
+Example integrating the Microsoft AutoGen framework with Rosud to allow
+AI agents to autonomously process USDC payments.
 
-설치:
+Installation:
     pip install rosud-python pyautogen
 """
 import os
@@ -13,12 +13,12 @@ from typing import Annotated, Optional
 import rosud
 from rosud.exceptions import PaymentError, RosudError
 
-# Rosud 클라이언트 초기화
+# Initialize Rosud client
 client = rosud.Rosud(api_key=os.environ.get("ROSUD_API_KEY", "rosud_live_xxx"))
 
 
 # ──────────────────────────────────────────────────────────
-# AutoGen 함수 정의 (에이전트가 호출할 함수들)
+# AutoGen function definitions (functions agents will call)
 # ──────────────────────────────────────────────────────────
 
 def make_payment(
@@ -84,16 +84,16 @@ def get_payment_history(limit: Annotated[int, "Number of payments to retrieve"] 
 
 
 # ──────────────────────────────────────────────────────────
-# AutoGen 에이전트 실행 예시
+# AutoGen agent execution example
 # ──────────────────────────────────────────────────────────
 
 def run_autogen_example() -> None:
-    """AutoGen ConversableAgent 예시"""
+    """AutoGen ConversableAgent example"""
     try:
         import autogen
         from autogen import ConversableAgent, UserProxyAgent
 
-        # LLM 설정
+        # LLM configuration
         llm_config = {
             "config_list": [
                 {
@@ -104,7 +104,7 @@ def run_autogen_example() -> None:
             "temperature": 0,
         }
 
-        # AI 에이전트 (결제 처리 담당)
+        # AI agent (handles payment processing)
         payment_agent = ConversableAgent(
             name="PaymentAgent",
             system_message=(
@@ -116,12 +116,12 @@ def run_autogen_example() -> None:
             llm_config=llm_config,
         )
 
-        # Function 등록
+        # Register functions
         payment_agent.register_for_llm(name="make_payment", description="Make a USDC payment")(make_payment)
         payment_agent.register_for_llm(name="get_balance", description="Check wallet balance")(get_balance)
         payment_agent.register_for_llm(name="get_payment_history", description="Get payment history")(get_payment_history)
 
-        # UserProxy (함수 실행자)
+        # UserProxy (function executor)
         user_proxy = UserProxyAgent(
             name="UserProxy",
             human_input_mode="NEVER",
@@ -133,7 +133,7 @@ def run_autogen_example() -> None:
         user_proxy.register_for_execution(name="get_balance")(get_balance)
         user_proxy.register_for_execution(name="get_payment_history")(get_payment_history)
 
-        # 대화 시작
+        # Start conversation
         user_proxy.initiate_chat(
             payment_agent,
             message=(
@@ -145,24 +145,24 @@ def run_autogen_example() -> None:
         )
 
     except ImportError:
-        print("AutoGen이 설치되지 않았습니다. pip install pyautogen 을 실행하세요.")
-        print("\n직접 함수 테스트:")
+        print("AutoGen is not installed. Run: pip install pyautogen")
+        print("\nDirect function test:")
         print(get_balance())
         print("\n" + get_payment_history(3))
 
 
 # ──────────────────────────────────────────────────────────
-# AutoGen v0.4+ (새 API) 예시
+# AutoGen v0.4+ (new API) example
 # ──────────────────────────────────────────────────────────
 
 def run_autogen_v04_example() -> None:
-    """AutoGen v0.4+ AssistantAgent 예시"""
+    """AutoGen v0.4+ AssistantAgent example"""
     try:
         from autogen_agentchat.agents import AssistantAgent
         from autogen_agentchat.ui import Console
         from autogen_ext.models.openai import OpenAIChatCompletionClient
 
-        # 도구 함수들
+        # Tool functions
         async def async_get_balance() -> str:
             async with rosud.AsyncRosud(api_key=os.environ.get("ROSUD_API_KEY")) as c:
                 balance = await c.wallets.get_balance()
@@ -189,9 +189,9 @@ def run_autogen_v04_example() -> None:
         asyncio.run(Console(agent.run_stream(task="Check my USDC balance")))
 
     except ImportError:
-        print("autogen-agentchat이 설치되지 않았습니다.")
+        print("autogen-agentchat is not installed.")
 
 
 if __name__ == "__main__":
-    print("=== AutoGen + Rosud 통합 예시 ===\n")
+    print("=== AutoGen + Rosud Integration Example ===\n")
     run_autogen_example()

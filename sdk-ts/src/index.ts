@@ -173,19 +173,19 @@ class RosudHTTP {
 class PaymentsResource {
   constructor(private readonly http: RosudHTTP) {}
 
-  /** 결제 생성 */
+  /** Create a payment */
   create(params: CreatePaymentParams): Promise<Payment> {
     return this.http.request<Payment>('/v1/payments', { method: 'POST', body: params })
   }
 
-  /** 결제 목록 조회 */
+  /** List payments */
   list(params?: ListPaymentsParams): Promise<PaymentListResponse> {
     return this.http.request<PaymentListResponse>('/v1/payments', {
       params: params as Record<string, string | number | undefined>,
     })
   }
 
-  /** 단일 결제 조회 */
+  /** Get a single payment */
   get(paymentId: string): Promise<Payment> {
     return this.http.request<Payment>(`/v1/payments/${paymentId}`)
   }
@@ -194,22 +194,22 @@ class PaymentsResource {
 class AgentsResource {
   constructor(private readonly http: RosudHTTP) {}
 
-  /** 에이전트 목록 조회 */
+  /** List agents */
   list(): Promise<Agent[]> {
     return this.http.request<Agent[]>('/v1/agents')
   }
 
-  /** 에이전트 생성 */
+  /** Create an agent */
   create(params: CreateAgentParams): Promise<Agent> {
     return this.http.request<Agent>('/v1/agents', { method: 'POST', body: params })
   }
 
-  /** 에이전트 조회 */
+  /** Get an agent */
   get(agentId: string): Promise<Agent> {
     return this.http.request<Agent>(`/v1/agents/${agentId}`)
   }
 
-  /** 에이전트 삭제 */
+  /** Delete an agent */
   delete(agentId: string): Promise<void> {
     return this.http.request<void>(`/v1/agents/${agentId}`, { method: 'DELETE' })
   }
@@ -218,7 +218,7 @@ class AgentsResource {
 class WalletsResource {
   constructor(private readonly http: RosudHTTP) {}
 
-  /** USDC 잔액 조회 */
+  /** Query USDC balance */
   balance(): Promise<WalletBalance> {
     return this.http.request<WalletBalance>('/v1/wallets/balance')
   }
@@ -227,17 +227,17 @@ class WalletsResource {
 class WebhooksResource {
   constructor(private readonly http: RosudHTTP) {}
 
-  /** Webhook 목록 조회 */
+  /** List webhooks */
   list(): Promise<Webhook[]> {
     return this.http.request<Webhook[]>('/v1/webhooks')
   }
 
-  /** Webhook 생성 */
+  /** Create a webhook */
   create(params: CreateWebhookParams): Promise<Webhook> {
     return this.http.request<Webhook>('/v1/webhooks', { method: 'POST', body: params })
   }
 
-  /** Webhook 삭제 */
+  /** Delete a webhook */
   delete(webhookId: string): Promise<void> {
     return this.http.request<void>(`/v1/webhooks/${webhookId}`, { method: 'DELETE' })
   }
@@ -246,11 +246,11 @@ class WebhooksResource {
 // ─── Main Client ───────────────────────────────────────────────────────────────
 
 export interface RosudClientOptions {
-  /** Rosud API 키 (rosud_live_xxx). 미제공 시 ROSUD_API_KEY 환경변수 사용 */
+  /** Rosud API key (rosud_live_xxx). Falls back to ROSUD_API_KEY env var if not provided */
   apiKey?: string
-  /** API 서버 URL (기본값: https://api.rosud.com) */
+  /** API server URL (default: https://api.rosud.com) */
   baseUrl?: string
-  /** 요청 타임아웃 ms (기본값: 30000) */
+  /** Request timeout in ms (default: 30000) */
   timeoutMs?: number
 }
 
@@ -269,7 +269,7 @@ export class Rosud {
       throw new RosudError(
         0,
         'missing_api_key',
-        'API 키가 필요합니다. new Rosud({ apiKey: "rosud_live_xxx" }) 또는 ROSUD_API_KEY 환경변수를 설정하세요.'
+        'API key is required. Use new Rosud({ apiKey: "rosud_live_xxx" }) or set the ROSUD_API_KEY environment variable.'
       )
     }
 
@@ -286,5 +286,5 @@ export class Rosud {
   }
 }
 
-/** 기본 export (편의용) */
+/** Default export (convenience) */
 export default Rosud

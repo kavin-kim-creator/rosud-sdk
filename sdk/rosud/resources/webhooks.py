@@ -1,4 +1,4 @@
-"""웹훅 리소스"""
+"""Webhook resource"""
 from __future__ import annotations
 
 from typing import Any, Optional
@@ -27,7 +27,7 @@ def _build_webhook_payload(
 
 
 class WebhooksResource:
-    """웹훅 API (동기)
+    """Webhooks API (synchronous)
 
     Examples:
         >>> webhook = client.webhooks.create(
@@ -49,21 +49,21 @@ class WebhooksResource:
         events: list[str],
         secret: Optional[str] = None,
     ) -> Webhook:
-        """웹훅을 등록합니다.
+        """Register a webhook.
 
         Args:
-            url: 웹훅 수신 URL (HTTPS 권장)
-            events: 구독할 이벤트 목록
-                    가능한 값: payment.pending, payment.confirmed, payment.failed,
-                              agent.created, agent.disabled
-            secret: HMAC 서명 검증용 시크릿 (선택, 8자 이상)
+            url: Webhook receiver URL (HTTPS recommended)
+            events: List of events to subscribe to
+                    Possible values: payment.pending, payment.confirmed, payment.failed,
+                                     agent.created, agent.disabled
+            secret: HMAC signature verification secret (optional, 8+ characters)
 
         Returns:
-            Webhook: 등록된 웹훅 객체
+            Webhook: The registered webhook object
 
         Raises:
-            ValidationError: URL이 유효하지 않거나 events가 비어있는 경우
-            AuthenticationError: API 키 오류
+            ValidationError: If URL is invalid or events list is empty
+            AuthenticationError: API key error
         """
         payload = _build_webhook_payload(url, events, secret)
         data = self._http.post("/v1/webhooks", json=payload)
@@ -74,48 +74,48 @@ class WebhooksResource:
         limit: int = 20,
         offset: int = 0,
     ) -> WebhookList:
-        """등록된 웹훅 목록을 조회합니다.
+        """List registered webhooks.
 
         Args:
-            limit: 최대 반환 건수 (기본값: 20)
-            offset: 건너뛸 건수 (기본값: 0)
+            limit: Maximum number of results to return (default: 20)
+            offset: Number of results to skip (default: 0)
 
         Returns:
-            WebhookList: 웹훅 목록 (이터러블)
+            WebhookList: List of webhooks (iterable)
         """
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         data = self._http.get("/v1/webhooks", params=params)
         return WebhookList.model_validate(data)
 
     def get(self, webhook_id: str) -> Webhook:
-        """특정 웹훅을 조회합니다.
+        """Retrieve a specific webhook.
 
         Args:
-            webhook_id: 웹훅 UUID
+            webhook_id: Webhook UUID
 
         Returns:
-            Webhook: 웹훅 객체
+            Webhook: The webhook object
 
         Raises:
-            NotFoundError: 웹훅을 찾을 수 없는 경우
+            NotFoundError: If the webhook is not found
         """
         data = self._http.get(f"/v1/webhooks/{webhook_id}")
         return Webhook.model_validate(data)
 
     def delete(self, webhook_id: str) -> None:
-        """웹훅을 삭제합니다.
+        """Delete a webhook.
 
         Args:
-            webhook_id: 웹훅 UUID
+            webhook_id: Webhook UUID
 
         Raises:
-            NotFoundError: 웹훅을 찾을 수 없는 경우
+            NotFoundError: If the webhook is not found
         """
         self._http.delete(f"/v1/webhooks/{webhook_id}")
 
 
 class AsyncWebhooksResource:
-    """웹훅 API (비동기)"""
+    """Webhooks API (asynchronous)"""
 
     def __init__(self, http: AsyncHTTPClient) -> None:
         self._http = http
@@ -126,7 +126,7 @@ class AsyncWebhooksResource:
         events: list[str],
         secret: Optional[str] = None,
     ) -> Webhook:
-        """웹훅을 등록합니다 (비동기)."""
+        """Register a webhook (async)."""
         payload = _build_webhook_payload(url, events, secret)
         data = await self._http.post("/v1/webhooks", json=payload)
         return Webhook.model_validate(data)
@@ -136,16 +136,16 @@ class AsyncWebhooksResource:
         limit: int = 20,
         offset: int = 0,
     ) -> WebhookList:
-        """웹훅 목록을 조회합니다 (비동기)."""
+        """List webhooks (async)."""
         params: dict[str, Any] = {"limit": limit, "offset": offset}
         data = await self._http.get("/v1/webhooks", params=params)
         return WebhookList.model_validate(data)
 
     async def get(self, webhook_id: str) -> Webhook:
-        """특정 웹훅을 조회합니다 (비동기)."""
+        """Retrieve a specific webhook (async)."""
         data = await self._http.get(f"/v1/webhooks/{webhook_id}")
         return Webhook.model_validate(data)
 
     async def delete(self, webhook_id: str) -> None:
-        """웹훅을 삭제합니다 (비동기)."""
+        """Delete a webhook (async)."""
         await self._http.delete(f"/v1/webhooks/{webhook_id}")

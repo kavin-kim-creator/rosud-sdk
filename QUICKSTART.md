@@ -1,15 +1,15 @@
 # 🚀 Rosud — Design Partner Quickstart
 
-> **지금 바로 에이전트에 결제를 심어보세요.**
-> AI 에이전트가 직접 USDC 결제를 처리합니다 — 사람 개입 없이.
+> **Embed payments into your agent right now.**
+> AI agents handle USDC payments directly — no human intervention.
 
 ---
 
-## Step 1 — API 키 발급
+## Step 1 — Get an API Key
 
-1. [rosud.com/dashboard](https://rosud.com/dashboard) 접속
-2. 회원가입 → **API Keys** 메뉴
-3. **"Create API Key"** 클릭 → `rosud_live_xxx` 형태의 키 발급
+1. Go to [rosud.com/dashboard](https://rosud.com/dashboard)
+2. Sign up → **API Keys** menu
+3. Click **"Create API Key"** → get a key in the format `rosud_live_xxx`
 
 ```bash
 export ROSUD_API_KEY="rosud_live_xxx"
@@ -17,37 +17,37 @@ export ROSUD_API_KEY="rosud_live_xxx"
 
 ---
 
-## Step 2 — 에이전트 등록
+## Step 2 — Register an Agent
 
-에이전트에 USDC 지갑을 연결합니다.
+Connect a USDC wallet to your agent.
 
 ```python
 import rosud
 
 client = rosud.Rosud(api_key="rosud_live_xxx")
 
-# 에이전트 등록
+# Register an agent
 agent = client.agents.create(
     name="my-gpt-agent",
-    wallet="0xYourWalletAddress",   # USDC 받을 지갑 주소
+    wallet="0xYourWalletAddress",   # Wallet address to receive USDC
 )
 
 print(agent.id)   # agt_01HXYZ...
 print(agent.wallet)
 ```
 
-**지갑 주소가 없다면?**
-- MetaMask 설치 → Base Network 추가 → 주소 복사
-- 또는 [Coinbase Wallet](https://wallet.coinbase.com/) 사용
+**Don't have a wallet address?**
+- Install MetaMask → Add Base Network → Copy address
+- Or use [Coinbase Wallet](https://wallet.coinbase.com/)
 
 ---
 
-## Step 3 — 첫 결제 실행
+## Step 3 — Run Your First Payment
 
-에이전트가 자율적으로 결제를 생성합니다.
+Your agent autonomously creates a payment.
 
 ```python
-# 에이전트가 외부 API에 결제
+# Agent pays an external API
 payment = client.payments.create(
     amount=1.00,                                  # USDC
     to="0xRecipientWalletAddress",
@@ -55,7 +55,7 @@ payment = client.payments.create(
 )
 
 print(payment.status)    # "confirmed"
-print(payment.tx_hash)   # Base L2 트랜잭션 해시
+print(payment.tx_hash)   # Base L2 transaction hash
 ```
 
 **TypeScript:**
@@ -72,18 +72,18 @@ const payment = await client.payments.create({
 
 ---
 
-## Step 4 — 잔액 확인
+## Step 4 — Check Balance
 
 ```python
 balance = client.wallets.balance()
-print(f"USDC 잔액: {balance.usdc}")
+print(f"USDC Balance: {balance.usdc}")
 ```
 
 ---
 
-## Step 5 — Webhook 설정 (선택)
+## Step 5 — Set Up Webhooks (Optional)
 
-결제 완료 알림을 받으려면:
+To receive payment completion notifications:
 
 ```python
 webhook = client.webhooks.create(
@@ -94,9 +94,9 @@ webhook = client.webhooks.create(
 
 ---
 
-## Claude MCP 연동
+## Claude MCP Integration
 
-Claude가 직접 결제를 실행하게 하려면:
+To let Claude execute payments directly:
 
 ```json
 // ~/Library/Application Support/Claude/claude_desktop_config.json
@@ -113,17 +113,17 @@ Claude가 직접 결제를 실행하게 하려면:
 }
 ```
 
-Claude에서 바로 사용:
-> "0x742d...에 5 USDC 보내줘"
+Use directly in Claude:
+> "Send 5 USDC to 0x742d..."
 
 ---
 
-## 문제가 생기면
+## Troubleshooting
 
-- 📖 [API 문서](https://rosud.com/docs)
-- 💬 카빈님께 직접 연락 (Design Partner 전용 지원)
+- 📖 [API Docs](https://rosud.com/docs)
+- 💬 Contact Kavin directly (Design Partner dedicated support)
 - 🐛 [GitHub Issues](https://github.com/kavin-kim-creator/rosud-sdk/issues)
 
 ---
 
-*Design Partner 여러분의 피드백이 Rosud를 만들어갑니다. 솔직한 의견 부탁드립니다!*
+*Your feedback as a Design Partner shapes Rosud. Please be honest!*

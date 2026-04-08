@@ -1,4 +1,4 @@
-"""Rosud API HTTP 클라이언트"""
+"""Rosud API HTTP client"""
 from typing import Any, Optional
 
 import httpx
@@ -21,8 +21,8 @@ class RosudClient:
 
         if not self.api_key:
             raise ValueError(
-                "ROSUD_API_KEY 환경변수가 설정되지 않았습니다. "
-                "export ROSUD_API_KEY=rosud_live_xxx 로 설정하세요."
+                "ROSUD_API_KEY environment variable is not set. "
+                "Set it with: export ROSUD_API_KEY=rosud_live_xxx"
             )
 
     def _headers(self) -> dict[str, str]:

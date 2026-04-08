@@ -1,4 +1,4 @@
-"""Rosud MCP Server - 메인 진입점"""
+"""Rosud MCP Server - main entry point"""
 import asyncio
 import logging
 
@@ -21,17 +21,17 @@ app = Server("rosud-mcp")
 
 @app.list_tools()
 async def list_tools(request: ListToolsRequest) -> ListToolsResult:
-    """사용 가능한 Rosud 결제 도구 목록을 반환합니다."""
+    """Return the list of available Rosud payment tools."""
     return ListToolsResult(tools=ALL_TOOLS)
 
 
 @app.call_tool()
 async def call_tool(request: CallToolRequest) -> CallToolResult:
-    """도구를 실행하고 결과를 반환합니다."""
+    """Execute a tool and return the result."""
     tool_name = request.params.name
     arguments = request.params.arguments or {}
 
-    logger.info("도구 실행: %s, 파라미터: %s", tool_name, arguments)
+    logger.info("Executing tool: %s, params: %s", tool_name, arguments)
 
     handler = TOOL_HANDLERS.get(tool_name)
     if handler is None:
@@ -45,8 +45,8 @@ async def call_tool(request: CallToolRequest) -> CallToolResult:
 
 
 async def run() -> None:
-    """MCP 서버를 stdio 모드로 실행합니다."""
-    logger.info("Rosud MCP Server 시작...")
+    """Run the MCP server in stdio mode."""
+    logger.info("Rosud MCP Server starting...")
     async with stdio_server() as (read_stream, write_stream):
         await app.run(
             read_stream,
@@ -56,7 +56,7 @@ async def run() -> None:
 
 
 def main() -> None:
-    """엔트리포인트 - pyproject.toml scripts에서 호출됩니다."""
+    """Entry point — called from pyproject.toml scripts."""
     asyncio.run(run())
 
 

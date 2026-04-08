@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rosud-mcp"
 version = "0.1.0"
-description = "Rosud MCP Server - Claude 에이전트가 USDC 결제를 직접 실행하는 MCP 서버"
+description = "Rosud MCP Server - MCP server for Claude agents to execute USDC payments directly"
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "MIT" }

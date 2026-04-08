@@ -1,4 +1,4 @@
-"""Rosud SDK 응답 모델 (Pydantic)"""
+"""Rosud SDK response models (Pydantic)"""
 from __future__ import annotations
 
 import uuid
@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 
 class Payment(BaseModel):
-    """결제 응답 모델"""
+    """Payment response model"""
 
     id: uuid.UUID
     agent_id: Optional[uuid.UUID] = None
@@ -46,7 +46,7 @@ class Payment(BaseModel):
 
 
 class PaymentList(BaseModel):
-    """결제 목록 응답 모델"""
+    """Payment list response model"""
 
     items: list[Payment]
     total: int
@@ -64,7 +64,7 @@ class PaymentList(BaseModel):
 
 
 class Agent(BaseModel):
-    """에이전트 응답 모델"""
+    """Agent response model"""
 
     id: uuid.UUID
     operator_id: uuid.UUID
@@ -80,9 +80,9 @@ class Agent(BaseModel):
 
 
 class AgentCreated(Agent):
-    """에이전트 생성 응답 (API 키 포함 - 최초 1회만 반환)"""
+    """Agent creation response (includes API key — returned only once)"""
 
-    api_key: str = Field(..., description="최초 생성 시에만 반환. 안전하게 보관하세요.")
+    api_key: str = Field(..., description="Returned only on initial creation. Store it securely.")
 
     def __repr__(self) -> str:
         masked_key = f"{self.api_key[:12]}..." if len(self.api_key) > 12 else "***"
@@ -90,7 +90,7 @@ class AgentCreated(Agent):
 
 
 class AgentList(BaseModel):
-    """에이전트 목록 응답 모델"""
+    """Agent list response model"""
 
     items: list[Agent]
     total: int
@@ -108,7 +108,7 @@ class AgentList(BaseModel):
 
 
 class WalletBalance(BaseModel):
-    """지갑 잔액 응답 모델"""
+    """Wallet balance response model"""
 
     wallet_id: str
     address: str
@@ -122,7 +122,7 @@ class WalletBalance(BaseModel):
 
 
 class Webhook(BaseModel):
-    """웹훅 응답 모델"""
+    """Webhook response model"""
 
     id: uuid.UUID
     operator_id: uuid.UUID
@@ -136,7 +136,7 @@ class Webhook(BaseModel):
 
 
 class WebhookList(BaseModel):
-    """웹훅 목록 응답 모델"""
+    """Webhook list response model"""
 
     items: list[Webhook]
     total: int

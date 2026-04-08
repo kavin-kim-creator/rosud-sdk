@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "rosud"
 version = "0.1.0"
-description = "Rosud Python SDK - AI 에이전트 자율 USDC 결제 인프라"
+description = "Rosud Python SDK - Autonomous USDC payment infrastructure for AI agents"
 readme = "README.md"
 license = { text = "MIT" }
 authors = [{ name = "Rosud Team", email = "team@rosud.com" }]

@@ -1,16 +1,16 @@
 """
-LangChain Tool 통합 예시 - Rosud Python SDK
+LangChain Tool integration example - Rosud Python SDK
 
-AI 에이전트가 LangChain Tool로 USDC 결제를 자율 처리하는 예시.
+Example of an AI agent autonomously processing USDC payments as a LangChain Tool.
 
-설치:
+Installation:
     pip install rosud-python langchain langchain-openai
 """
 import os
 from typing import Optional
 
 # ──────────────────────────────────────────────────────────
-# 방법 1: @tool 데코레이터 (간단한 사용)
+# Method 1: @tool decorator (simple usage)
 # ──────────────────────────────────────────────────────────
 try:
     from langchain.tools import tool
@@ -86,11 +86,11 @@ try:
             return f"Error listing payments: {e.message}"
 
 except ImportError:
-    print("LangChain이 설치되지 않았습니다. pip install langchain 을 실행하세요.")
+    print("LangChain is not installed. Run: pip install langchain")
 
 
 # ──────────────────────────────────────────────────────────
-# 방법 2: BaseTool 상속 (고급 사용, 더 많은 제어)
+# Method 2: BaseTool subclass (advanced usage, more control)
 # ──────────────────────────────────────────────────────────
 try:
     from langchain.tools import BaseTool
@@ -149,25 +149,25 @@ except ImportError:
 
 
 # ──────────────────────────────────────────────────────────
-# LangChain Agent 실행 예시
+# LangChain Agent execution example
 # ──────────────────────────────────────────────────────────
 def run_langchain_agent_example() -> None:
-    """LangChain ReAct 에이전트 예시"""
+    """LangChain ReAct agent example"""
     try:
         from langchain.agents import AgentType, initialize_agent
         from langchain_openai import ChatOpenAI
 
-        # Tools 정의
+        # Define tools
         tools = [pay_for_service, check_wallet_balance, list_recent_payments]
 
-        # LLM 설정
+        # LLM configuration
         llm = ChatOpenAI(
             model="gpt-4",
             temperature=0,
             api_key=os.environ.get("OPENAI_API_KEY"),
         )
 
-        # ReAct 에이전트 초기화
+        # Initialize ReAct agent
         agent = initialize_agent(
             tools=tools,
             llm=llm,
@@ -175,16 +175,16 @@ def run_langchain_agent_example() -> None:
             verbose=True,
         )
 
-        # 에이전트 실행
+        # Run the agent
         result = agent.run(
             "Check my USDC balance and if I have enough funds, "
             "pay 2.50 USDC to 0xServiceProvider for data analysis service."
         )
-        print(f"\n에이전트 결과: {result}")
+        print(f"\nAgent result: {result}")
 
     except ImportError as e:
-        print(f"필요한 패키지가 없습니다: {e}")
-        print("pip install langchain langchain-openai 를 실행하세요.")
+        print(f"Required packages are missing: {e}")
+        print("Run: pip install langchain langchain-openai")
 
 
 if __name__ == "__main__":

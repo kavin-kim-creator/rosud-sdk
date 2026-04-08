@@ -1,5 +1,5 @@
 """
-Rosud Python SDK - AI 에이전트 자율 USDC 결제 인프라
+Rosud Python SDK - Autonomous USDC payment infrastructure for AI agents
 
 Quick Start:
     >>> import rosud
@@ -7,7 +7,7 @@ Quick Start:
     >>> payment = client.payments.create(amount=5.00, to="0xRecipient", memo="fee")
     >>> print(payment.id, payment.status)
 
-비동기:
+Async:
     >>> client = rosud.AsyncRosud(api_key="rosud_live_xxx")
     >>> payment = await client.payments.create(amount=1.00, to="0xAddr")
 """
@@ -39,10 +39,10 @@ from .models import (
 
 __version__ = "0.1.0"
 __all__ = [
-    # 클라이언트
+    # Clients
     "Rosud",
     "AsyncRosud",
-    # 모델
+    # Models
     "Payment",
     "PaymentList",
     "Agent",
@@ -51,7 +51,7 @@ __all__ = [
     "WalletBalance",
     "Webhook",
     "WebhookList",
-    # 예외
+    # Exceptions
     "RosudError",
     "AuthenticationError",
     "PaymentError",

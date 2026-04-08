@@ -1,11 +1,11 @@
-"""Rosud SDK 예외 클래스"""
+"""Rosud SDK exception classes"""
 from __future__ import annotations
 
 from typing import Any
 
 
 class RosudError(Exception):
-    """Rosud SDK 기본 예외"""
+    """Base exception for Rosud SDK"""
 
     def __init__(
         self,
@@ -30,27 +30,27 @@ class RosudError(Exception):
 
 
 class AuthenticationError(RosudError):
-    """API 키가 유효하지 않거나 누락됨 (HTTP 401/403)"""
+    """API key is invalid or missing (HTTP 401/403)"""
 
 
 class PaymentError(RosudError):
-    """결제 처리 중 오류"""
+    """Error during payment processing"""
 
 
 class InsufficientFundsError(PaymentError):
-    """잔액 부족"""
+    """Insufficient balance"""
 
 
 class SpendingLimitExceededError(PaymentError):
-    """지출 한도 초과"""
+    """Spending limit exceeded"""
 
 
 class RecipientNotAllowedError(PaymentError):
-    """허용되지 않은 수신자 주소"""
+    """Recipient address not allowed"""
 
 
 class ValidationError(RosudError):
-    """요청 파라미터 유효성 검사 실패 (HTTP 422)"""
+    """Request parameter validation failed (HTTP 422)"""
 
     def __init__(
         self,
@@ -67,16 +67,16 @@ class ValidationError(RosudError):
                 f"{e.get('loc', ['unknown'])[-1]}: {e.get('msg', 'invalid')}"
                 for e in self.field_errors
             )
-            return f"{self.message} - 필드 오류: {errors}"
+            return f"{self.message} - Field errors: {errors}"
         return self.message
 
 
 class NotFoundError(RosudError):
-    """리소스를 찾을 수 없음 (HTTP 404)"""
+    """Resource not found (HTTP 404)"""
 
 
 class RateLimitError(RosudError):
-    """요청 속도 제한 초과 (HTTP 429)"""
+    """Request rate limit exceeded (HTTP 429)"""
 
     def __init__(self, message: str, retry_after: int | None = None, **kwargs: Any) -> None:
         self.retry_after = retry_after
@@ -84,26 +84,26 @@ class RateLimitError(RosudError):
 
 
 class ServerError(RosudError):
-    """서버 내부 오류 (HTTP 5xx)"""
+    """Internal server error (HTTP 5xx)"""
 
 
 class TimeoutError(RosudError):
-    """요청 타임아웃"""
+    """Request timeout"""
 
 
 class ConnectionError(RosudError):
-    """네트워크 연결 오류"""
+    """Network connection error"""
 
 
 def _raise_for_status(status_code: int, body: dict[str, Any]) -> None:
-    """HTTP 상태코드에 따라 적절한 예외를 발생시킵니다."""
+    """Raise the appropriate exception based on HTTP status code."""
     error_code = body.get("error", "unknown_error")
-    message = body.get("message", f"HTTP {status_code} 오류")
+    message = body.get("message", f"HTTP {status_code} error")
 
     if status_code == 401:
         raise AuthenticationError(message, status_code=status_code, error_code=error_code, response_body=body)
     elif status_code == 403:
-        # 결제 관련 403은 더 구체적인 예외로
+        # Map payment-related 403 to more specific exceptions
         if error_code == "spending_limit_exceeded":
             raise SpendingLimitExceededError(message, status_code=status_code, error_code=error_code, response_body=body)
         elif error_code == "recipient_not_allowed":

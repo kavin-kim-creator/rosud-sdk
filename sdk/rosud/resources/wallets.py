@@ -1,4 +1,4 @@
-"""지갑 리소스"""
+"""Wallet resource"""
 from __future__ import annotations
 
 from ..models import WalletBalance
@@ -6,46 +6,46 @@ from .._http import AsyncHTTPClient, SyncHTTPClient
 
 
 class WalletsResource:
-    """지갑 API (동기)
+    """Wallets API (synchronous)
 
     Examples:
         >>> balance = client.wallets.get_balance()
-        >>> print(f"잔액: {balance.amount} {balance.currency}")
-        >>> print(f"주소: {balance.address}")
+        >>> print(f"Balance: {balance.amount} {balance.currency}")
+        >>> print(f"Address: {balance.address}")
     """
 
     def __init__(self, http: SyncHTTPClient) -> None:
         self._http = http
 
     def get_balance(self) -> WalletBalance:
-        """현재 지갑 잔액을 조회합니다.
+        """Retrieve the current wallet balance.
 
         Returns:
-            WalletBalance: 잔액 정보 (금액, 통화, 네트워크, 주소)
+            WalletBalance: Balance info (amount, currency, network, address)
 
         Raises:
-            AuthenticationError: API 키 오류
+            AuthenticationError: API key error
         """
         data = self._http.get("/v1/wallets/balance")
         return WalletBalance.model_validate(data)
 
 
 class AsyncWalletsResource:
-    """지갑 API (비동기)
+    """Wallets API (asynchronous)
 
     Examples:
         >>> balance = await client.wallets.get_balance()
-        >>> print(f"잔액: {balance.amount} {balance.currency}")
+        >>> print(f"Balance: {balance.amount} {balance.currency}")
     """
 
     def __init__(self, http: AsyncHTTPClient) -> None:
         self._http = http
 
     async def get_balance(self) -> WalletBalance:
-        """현재 지갑 잔액을 조회합니다 (비동기).
+        """Retrieve the current wallet balance (async).
 
         Returns:
-            WalletBalance: 잔액 정보
+            WalletBalance: Balance info
         """
         data = await self._http.get("/v1/wallets/balance")
         return WalletBalance.model_validate(data)
