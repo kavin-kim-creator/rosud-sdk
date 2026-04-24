@@ -288,3 +288,205 @@ export class Rosud {
 
 /** Default export (convenience) */
 export default Rosud
+
+// ─── Webhook Verification ─────────────────────────────────────────────────────
+
+/**
+ * Verifies a Rosud webhook signature.
+ *
+ * The server includes an `X-Rosud-Signature: sha256=<hex>` header in every webhook request.
+ * Use this function to confirm that the request was genuinely sent from the Rosud server.
+ *
+ * @example
+ * ```typescript
+ * // Next.js App Router
+ * export async function POST(req: Request) {
+ *   const body = await req.text()
+ *   const isValid = await verifyWebhook(
+ *     body,
+ *     req.headers.get('x-rosud-signature')!,
+ *     process.env.ROSUD_WEBHOOK_SECRET!
+ *   )
+ *   if (!isValid) return Response.json({ error: 'Invalid signature' }, { status: 401 })
+ * }
+ * ```
+ */
+export async function verifyWebhook(
+  payload: string,
+  signature: string,
+  secret: string,
+): Promise<boolean> {
+  if (!signature || !secret) return false
+  const parts = signature.split('=')
+  if (parts.length !== 2 || parts[0] !== 'sha256') return false
+  const expectedHex = parts[1]
+  try {
+    const encoder = new TextEncoder()
+    const key = await crypto.subtle.importKey('raw', encoder.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+    const sig = await crypto.subtle.sign('HMAC', key, encoder.encode(payload))
+    const computed = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('')
+    if (computed.length !== expectedHex.length) return false
+    let diff = 0
+    for (let i = 0; i < computed.length; i++) diff |= computed.charCodeAt(i) ^ expectedHex.charCodeAt(i)
+    return diff === 0
+  } catch { return false }
+}
+
+/** Node.js-only synchronous webhook verification */
+export function verifyWebhookSync(payload: string, signature: string, secret: string): boolean {
+  if (!signature || !secret) return false
+  const parts = signature.split('=')
+  if (parts.length !== 2 || parts[0] !== 'sha256') return false
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const nc = typeof require !== 'undefined' ? (() => { try { return require('crypto') } catch { return null } })() : null
+  if (!nc) throw new Error('verifyWebhookSync is Node.js only. Use verifyWebhook (async) in browsers.')
+  const computed = nc.createHmac('sha256', secret).update(payload).digest('hex')
+  if (computed.length !== parts[1].length) return false
+  return nc.timingSafeEqual(Buffer.from(computed, 'hex'), Buffer.from(parts[1], 'hex'))
+}
+
+// ─── x402 Protocol Support ────────────────────────────────────────────────────
+
+export interface X402Options {
+  /** Maximum USDC to spend per request (default: 0.10) */
+  maxPrice?: number
+  /** Optional Rosud agent ID for spending limit tracking */
+  agentId?: string
+  /** Optional payment memo */
+  memo?: string
+  /** Additional HTTP headers */
+  headers?: Record<string, string>
+  /** Request body (for POST/PUT) */
+  body?: unknown
+}
+
+export interface X402Response {
+  /** HTTP status code of the final response */
+  status: number
+  /** Whether a payment was made */
+  paid: boolean
+  /** Rosud payment ID (if paid) */
+  paymentId?: string
+  /** Amount paid in USDC (if paid) */
+  amountUsdc?: number
+  /** Response body text */
+  body: string
+  /** Parsed JSON body (if Content-Type is application/json) */
+  json?: unknown
+}
+
+/**
+ * Fetch an x402-protected URL, automatically paying via Rosud if a 402 is returned.
+ *
+ * The x402 protocol enables per-request HTTP micropayments.
+ * This function handles the full payment flow using Rosud as the payment facilitator.
+ *
+ * @example
+ * ```typescript
+ * import Rosud, { payAndFetch } from 'rosud'
+ *
+ * const client = new Rosud({ apiKey: 'rosud_live_xxx' })
+ *
+ * const result = await payAndFetch('https://api.example.com/premium', client, {
+ *   maxPrice: 0.05,
+ *   agentId: 'agent_abc',
+ * })
+ * console.log(result.paid, result.body)
+ * ```
+ */
+export async function payAndFetch(
+  url: string,
+  rosudClient: Rosud,
+  options: X402Options & { method?: string } = {},
+): Promise<X402Response> {
+  const { method = 'GET', maxPrice = 0.10, agentId, memo, headers = {}, body } = options
+  const reqInit: RequestInit = {
+    method,
+    headers: { 'Content-Type': 'application/json', ...headers },
+    ...(body ? { body: JSON.stringify(body) } : {}),
+  }
+
+  // Step 1: Initial request — check if payment is needed
+  const initial = await fetch(url, reqInit)
+  if (initial.status !== 402) {
+    const text = await initial.text()
+    return { status: initial.status, paid: false, body: text.slice(0, 2000), json: tryParseJson(text) }
+  }
+
+  // Step 2: Parse PAYMENT-REQUIRED header (x402 protocol)
+  const prHeader = initial.headers.get('PAYMENT-REQUIRED') ?? initial.headers.get('payment-required')
+  if (!prHeader) throw new Error('402 received but no PAYMENT-REQUIRED header found.')
+
+  let paymentRequired: unknown
+  try { paymentRequired = JSON.parse(atob(prHeader)) }
+  catch { throw new Error(`Failed to decode PAYMENT-REQUIRED header: ${prHeader.slice(0, 100)}`) }
+
+  const pr = paymentRequired as Record<string, unknown>
+  const accepts = (pr['accepts'] as unknown[]) ?? []
+  if (!accepts.length) throw new Error('No payment requirements in 402 response.')
+
+  // Step 3: Select cheapest requirement within budget
+  let selected: unknown = null
+  for (const req of accepts) {
+    const r = req as Record<string, unknown>
+    const raw = parseFloat(String(r['maxAmountRequired'] ?? r['amount'] ?? '0'))
+    const priceUsdc = raw > 1000 ? raw / 1_000_000 : raw
+    if (priceUsdc <= maxPrice) { selected = req; break }
+  }
+  if (!selected) throw new Error(`All payment requirements exceed maxPrice=${maxPrice} USDC.`)
+
+  // Step 4: Ask Rosud to pay on behalf of the agent
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payResult = await (rosudClient as any)._http.request<{
+    payment_signature?: string; payment_id?: string; amount_usdc?: number; error?: string
+  }>('/x402/pay', {
+    method: 'POST',
+    body: { url, method, payment_requirement: selected, payment_required: paymentRequired, agent_id: agentId, memo: memo ?? `x402:${url}` },
+  })
+
+  if (payResult.error) throw new Error(`Rosud payment failed: ${payResult.error}`)
+  if (!payResult.payment_signature) throw new Error('Rosud did not return payment_signature.')
+
+  // Step 5: Retry with payment signature
+  const final = await fetch(url, {
+    ...reqInit,
+    headers: { ...(reqInit.headers as Record<string, string>), ...headers, 'PAYMENT-SIGNATURE': payResult.payment_signature },
+  })
+  const finalText = await final.text()
+  return { status: final.status, paid: true, paymentId: payResult.payment_id, amountUsdc: payResult.amount_usdc, body: finalText.slice(0, 2000), json: tryParseJson(finalText) }
+}
+
+function tryParseJson(text: string): unknown {
+  try { return JSON.parse(text) } catch { return undefined }
+}
+
+/**
+ * Reusable x402 client backed by Rosud — pay-per-request APIs made simple.
+ *
+ * @example
+ * ```typescript
+ * import Rosud, { X402Client } from 'rosud'
+ *
+ * const rosud = new Rosud({ apiKey: 'rosud_live_xxx' })
+ * const x402 = new X402Client(rosud, { maxPrice: 0.05, agentId: 'my-agent' })
+ *
+ * const weather = await x402.get('https://api.example.com/weather')
+ * const result  = await x402.post('https://api.example.com/infer', { prompt: 'hello' })
+ * console.log(weather.paid, weather.json)
+ * ```
+ */
+export class X402Client {
+  constructor(
+    private readonly rosud: Rosud,
+    private readonly defaults: X402Options = {},
+  ) {}
+
+  async request(method: string, url: string, body?: unknown, opts: X402Options = {}): Promise<X402Response> {
+    return payAndFetch(url, this.rosud, { ...this.defaults, ...opts, method, body: body ?? opts.body })
+  }
+
+  get(url: string, opts?: X402Options)                { return this.request('GET',    url, undefined, opts) }
+  post(url: string, body?: unknown, opts?: X402Options) { return this.request('POST',   url, body,      opts) }
+  put(url: string,  body?: unknown, opts?: X402Options) { return this.request('PUT',    url, body,      opts) }
+  delete(url: string, opts?: X402Options)              { return this.request('DELETE', url, undefined, opts) }
+}

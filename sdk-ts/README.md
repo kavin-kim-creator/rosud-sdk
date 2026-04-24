@@ -118,3 +118,55 @@ try {
 - [API Docs](https://rosud.com/docs)
 - [Python SDK](../sdk/)
 - [MCP Server](../mcp/)
+
+## x402 Protocol — Pay-Per-Request APIs
+
+Rosud supports the [x402 protocol](https://x402.org) for automatic micropayments. When an API returns HTTP 402, Rosud handles the payment and retries seamlessly.
+
+### Quick start
+
+```typescript
+import Rosud, { X402Client } from 'rosud'
+
+const rosud = new Rosud({ apiKey: 'rosud_live_xxx' })
+const x402 = new X402Client(rosud, {
+  maxPrice: 0.05,   // max USDC per call
+  agentId: 'my-agent',
+})
+
+// Automatically pays if 402 returned
+const result = await x402.get('https://api.example.com/premium-data')
+console.log(result.paid)        // true
+console.log(result.amountUsdc)  // 0.001
+console.log(result.json)        // { data: '...' }
+```
+
+### One-shot helper
+
+```typescript
+import Rosud, { payAndFetch } from 'rosud'
+
+const client = new Rosud({ apiKey: 'rosud_live_xxx' })
+
+const res = await payAndFetch('https://api.example.com/data', client, {
+  maxPrice: 0.10,
+  memo: 'weather-query',
+})
+```
+
+### Webhook verification
+
+```typescript
+import { verifyWebhook } from 'rosud'
+
+export async function POST(req: Request) {
+  const body = await req.text()
+  const valid = await verifyWebhook(
+    body,
+    req.headers.get('x-rosud-signature')!,
+    process.env.ROSUD_WEBHOOK_SECRET!
+  )
+  if (!valid) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+  // handle event...
+}
+```

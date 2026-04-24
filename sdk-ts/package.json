@@ -1,7 +1,7 @@
 {
   "name": "rosud",
-  "version": "0.1.0",
-  "description": "Rosud SDK — AI agent USDC payment infrastructure",
+  "version": "0.2.0",
+  "description": "Rosud SDK \u2014 AI agent USDC payment infrastructure",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "module": "dist/index.mjs",
